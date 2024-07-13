@@ -1,0 +1,39 @@
+package utils
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+)
+
+func WriteJson(w http.ResponseWriter, status int, data any) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	return json.NewEncoder(w).Encode(data)
+}
+
+func WriteError(w http.ResponseWriter, status int, err error) {
+	WriteJson(w, status, map[string]string{"error": err.Error()})
+}
+
+func ParseJSON(r *http.Request, v any) error {
+	if r.Body == nil {
+		return fmt.Errorf("missing request body")
+	}
+
+	return json.NewDecoder(r.Body).Decode(v)
+}
+func GetTokenFromRequest(r *http.Request) string {
+	tokenAuth := r.Header.Get("Authorization")
+	tokenQuery := r.URL.Query().Get("token")
+
+	if tokenAuth != "" {
+		return tokenAuth
+	}
+
+	if tokenQuery != "" {
+		return tokenQuery
+	}
+
+	return ""
+}
